@@ -7,6 +7,7 @@ from multiprocessing.pool import ThreadPool
 import numpy as np
 import pyaudio
 import sounddevice
+from loguru import logger
 
 from src.main import ROOT_PATH
 
@@ -53,6 +54,8 @@ class RealtimeRecording:
         self.stream = self.p.open(format=self.formats, channels=self.channels, rate=self.rate, input=True, frames_per_buffer=self.chunk, input_device_index=self.drives[0]['index'])
         self.threadPool = ThreadPool(10)
 
+        self.__isRecording = True
+
         if self.isSave:
             self.outputWaveFile = wave.open(os.path.join(self.savePath, self.fileName), 'wb')
             self.outputWaveFile.setnchannels(self.channels)
@@ -63,7 +66,7 @@ class RealtimeRecording:
 
         def run():
             try:
-                while True:
+                while self.__isRecording:
                     audio_data = np.frombuffer(self.stream.read(self.chunk), dtype=np.int32)
                     callback(audio_data)
                     if self.isSave:
@@ -77,15 +80,16 @@ class RealtimeRecording:
         self.threadPool.apply_async(run)
 
     def stopRecording(self):
+        self.__isRecording = False
         self.stream.stop_stream()
         self.stream.close()
         self.p.terminate()
+        logger.info("Recording stopped")
 
-    def __del__(self):
+    def close(self):
         if self.isSave:
             self.outputWaveFile.close()
         self.stopRecording()
-        pass
 
     def __repr__(self):
         return "\n".join([f"{k}: {v}" for k, v in self.__dict__.items()])

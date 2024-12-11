@@ -4,6 +4,7 @@ from multiprocessing.pool import ThreadPool
 
 import requests
 from PySide6.QtWidgets import QApplication
+from loguru import logger
 
 from src.main.python.ollama import BASE_API_URL
 from src.main.python.ollama.ChatMessage import ChatMessage
@@ -81,6 +82,11 @@ class Ollama:
 
     def chatByUser(self, msg: str, callback: callable = None, endCallback: callable = None):
         self.chat(ChatMessage("user", msg), callback, endCallback)
+
+    def close(self):
+        self.unloadModel()
+        self.threadPool.close()
+        logger.info("Ollama Closed")
 
 
 if __name__ == "__main__":

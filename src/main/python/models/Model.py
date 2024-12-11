@@ -6,7 +6,7 @@ from multiprocessing.pool import ThreadPool
 from threading import Thread, Timer
 
 import live2d.v3 as live2d
-from live2d.v3 import Parameter, StandardParams
+from live2d.v3 import Parameter, StandardParams, LAppModel
 from loguru import logger
 
 from src.main import RESOURCES_PATH
@@ -15,10 +15,9 @@ from src.main.python.models import getAllExpression
 
 
 class Model:
-    model: live2d.LAppModel
-
     def __init__(self, modelName: str, isAutoBlink: bool = True, isAutoBreath: bool = True, isLog: bool = True, lipSyncN: int = 10):
         live2d.init()
+        self.model: LAppModel | None = None
         self.modelName = modelName
 
         self.basePath = os.path.join(RESOURCES_PATH, f"models\\{modelName}")
@@ -112,7 +111,7 @@ class Model:
 
     def randomExpression(self, expressionList: list[str], endCallExpression: str, duration: float, frequency: float):
         def run():
-            while True:
+            while self.model:
                 getList = random.choices(expressionList, k=2)
                 self.setExpression(getList[0])
                 time.sleep(duration / 2)
@@ -127,7 +126,10 @@ class Model:
             logger.error("Model not initialized or no Expression found")
             raise ModelNotInitializedException("Model not initialized or no Expression found")
 
-    def __del__(self):
+    def unload(self):
+        self.model = None
+        self.threadPool.close()
+        logger.info("Model Closed")
         try:
             live2d.dispose()
         except Exception:
@@ -161,6 +163,7 @@ class Model:
     def startContinuousMotions(self, groups: dict[str, list[int, int, callable, callable] | list[int, int] | list[int]], duration: float = 2.0):
         logger.debug("Start Continuous Motions")
 
+        # TODO: BUG
         def run():
             for group, motions in groups.items():
                 self.waitMotionEnd(self.startMotion, args=(group, *motions))

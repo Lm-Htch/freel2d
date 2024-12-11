@@ -1,3 +1,5 @@
+from threading import Timer
+
 import librosa
 import numpy as np
 from PySide6.QtCore import Qt
@@ -16,7 +18,7 @@ class WaveLoader(QWidget):
                  recording: RealtimeRecording = None,
                  position: tuple[int, int] = None,
                  fps: int = 30,
-                 waveColor: tuple[int, int, int] | str = (255, 255, 255)):
+                 waveColor: tuple[int, int, int, float] | str = "white"):
         super().__init__(parent)
         self.setFixedSize(width, height)
         self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
@@ -39,6 +41,8 @@ class WaveLoader(QWidget):
 
         self.fps = fps
         self.waveColor = waveColor
+
+        self.__isRunning = True
 
         self.position = position or self.pos().toTuple()
         self.move(self.position[0], self.position[1])
@@ -93,8 +97,25 @@ class WaveLoader(QWidget):
         except Exception as e:
             logger.error(f"Error: {e}")
             self.recording.stopRecording()
-            self.close()
 
     def closeEvent(self, event):
         self.recording.stopRecording()
         event.accept()
+
+    def cleanup(self):
+        self.__isRunning = False
+        self.hide()
+        self.recording.close()
+        logger.info("WaveLoader closed.")
+
+
+if __name__ == '__main__':
+    import sys
+    from PySide6.QtWidgets import QApplication
+
+    app = QApplication(sys.argv)
+    waveLoader = WaveLoader()
+    waveLoader.startRecording()
+    Timer(10, waveLoader.cleanup).start()
+    waveLoader.show()
+    sys.exit(app.exec())

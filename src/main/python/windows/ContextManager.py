@@ -3,6 +3,7 @@ from multiprocessing.pool import ThreadPool
 
 from PySide6.QtGui import Qt, QPainter, QPaintEvent
 from PySide6.QtWidgets import QApplication, QWidget, QStyleOption, QStyle, QLabel, QVBoxLayout
+from loguru import logger
 
 
 class ContextManager(QWidget):
@@ -50,6 +51,11 @@ class ContextManager(QWidget):
         self._position = position
         self.move(*map(int, (self._position[0] - self._width // 2, self._position[1] - self._height // 2)))
         # self.content.move(*map(int, (self._position[0] - self._width // 2, self._position[1] - self._height // 2)))
+
+    def cleanUp(self):
+        self.threadPool.close()
+        self.hide()
+        logger.info("ContextManager closed")
 
 
 if __name__ == '__main__':

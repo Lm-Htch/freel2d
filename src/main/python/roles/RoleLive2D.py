@@ -15,7 +15,7 @@ from src.main.python.models import Model, getMotionGroups, getAllExpression
 from src.main.python.ollama.Ollama import Ollama
 from src.main.python.patFunction.RealtimeRecording import RealtimeRecording
 from src.main.python.roles import gl
-from src.main.python.windows import getCenterPosition
+from src.main.python.windows import getCenterPosition, saveToConfigureFile
 from src.main.python.windows.ContextManager import ContextManager
 from src.main.python.windows.WaveLoader import WaveLoader
 
@@ -68,13 +68,7 @@ class Liv2DWidget(QOpenGLWidget):
         hide_action.triggered.connect(self.hide)
         exit_action = self.trayMenu.addAction("退出")
 
-        def exit_app():
-            self.hide()
-            self.trayIcon.setVisible(False)
-            self.close()
-            sys.exit(0)
-
-        exit_action.triggered.connect(exit_app)
+        exit_action.triggered.connect(lambda: self.exit())
 
         self.trayIcon.setContextMenu(self.trayMenu)
         self.trayIcon.setToolTip(self.title)
@@ -116,6 +110,12 @@ class Liv2DWidget(QOpenGLWidget):
         self.initUI()
         self.initTray()
         self.show()
+
+    def exit(self):
+        self.hide()
+        self.trayIcon.setVisible(False)
+        self.close()
+        sys.exit(0)
 
 
 class RoleLive2D(Liv2DWidget):
@@ -185,6 +185,31 @@ class RoleLive2D(Liv2DWidget):
             kwargs.update(waveLoaderKwargs or {})
             self.waveLoader = WaveLoader(**kwargs)
 
+        self.config = {
+            "roleName": self.roleName,
+            "modelName": self.modelName,
+            "isLookingAt": self.isLookingAt,
+            "isAutoBlink": self.model.isAutoBlink,
+            "isAutoBreath": self.model.isAutoBreath,
+            "isLog": self.model.isLog,
+            "isAI": self.isAI,
+            "ollamaArgs": ollamaArgs,
+            "ollamaKwargs": ollamaKwargs,
+            "recordingArgs": recordingArgs,
+            "recordingKwargs": recordingKwargs,
+            "waveLoaderKwargs": waveLoaderKwargs,
+            "idleFrequency": self.idleFrequency,
+            "fps": self.fps,
+            "size": self.size,
+            "scale": self.scale,
+            "title": self.title,
+            "iconFileName": self.iconFileName,
+            "position": self.position,
+            "contextPosition": self.contextPosition,
+            "isRecording": self.isRecording,
+            "waveColor": "blue" if self.waveLoader else None
+        }
+
     def isInL2DArea(self, click_x, click_y):
         return gl.glReadPixels(click_x, self.height() - click_y, 1, 1, gl.GL_RGBA, gl.GL_UNSIGNED_BYTE)[3] > 0
 
@@ -230,8 +255,16 @@ class RoleLive2D(Liv2DWidget):
 
         self.update()
 
-    def __del__(self):
-        del self.model
+    def exit(self):
+        self.model.unload()
+        self.contextManager.cleanUp()
+        self.waveLoader.cleanup()
+        self.ollama.close()
+
+        self.threadPool.close()
+        saveToConfigureFile(self.roleName, self.config)
+
+        super().exit()
 
     def loadIdleMotion(self):
         pass
