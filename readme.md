@@ -10,15 +10,15 @@
 ## 使用方法
 
 * 创建虚拟环境
-    * ```powershell
-      python -m venv .venv
-      ```
+  ```powershell
+  python -m venv .venv
+  ```
   其中 .venv 为虚拟环境的路径位置
-    * 进入虚拟环境
-      ```powershell
-      .venv/Scripts/activate.bat
-      ```
-      若.venv不是虚拟环境路径，需要自行修改
+  进入虚拟环境
+  ```powershell
+  .venv/Scripts/activate.bat
+  ```
+  若.venv不是虚拟环境路径，需要自行修改
 
 * 添加库和依赖
   ```powershell
