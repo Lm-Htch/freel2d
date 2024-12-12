@@ -17,4 +17,10 @@ def getCenterPosition(__size: tuple[int, int]):
 
 def saveToConfigureFile(configFile: str, configData: dict):
     with open(os.path.join(CONFIG_PATH, configFile + ".json"), "w") as f:
-        json.dump(configData, fp=f, indent=4, sort_keys=True)
+        f.write(json.dumps(configData, indent=4, sort_keys=True))
+    return True
+
+
+def loadFromConfigureFile(configFile: str) -> dict:
+    with open(os.path.join(CONFIG_PATH, configFile), "r") as f:
+        return json.load(f)

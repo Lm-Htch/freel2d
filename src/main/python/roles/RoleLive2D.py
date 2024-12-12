@@ -1,10 +1,9 @@
 import sys
 import time
-from multiprocessing.pool import ThreadPool
+from typing import Type
 
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QCursor
-from PySide6.QtOpenGLWidgets import QOpenGLWidget
 from PySide6.QtWidgets import QApplication
 from loguru import logger
 
@@ -12,106 +11,10 @@ from src.main.python.models import Model, getMotionGroups, getAllExpression
 from src.main.python.ollama.Ollama import Ollama
 from src.main.python.patFunction.RealtimeRecording import RealtimeRecording
 from src.main.python.roles import gl
-from src.main.python.windows import getCenterPosition, saveToConfigureFile
+from src.main.python.windows import saveToConfigureFile, loadFromConfigureFile
 from src.main.python.windows.ContextManager import ContextManager
-from src.main.python.windows.SystemTray import SystemTray
+from src.main.python.windows.Liv2DWidget import Liv2DWidget
 from src.main.python.windows.WaveLoader import WaveLoader
-
-
-class Liv2DWidget(QOpenGLWidget):
-    def __init__(self, size: tuple[int, int] = (300, 500),
-                 scale: float = 1.0,
-                 title: str = "Live2D Widget",
-                 tray: SystemTray = None,
-                 trayArgs: tuple = (),
-                 trayKwargs: dict = None,
-                 position: tuple[int, int] = (-1, -1)):
-        super().__init__(parent=None)
-        self.title = title
-        self.size = size
-        self.scale = scale
-        try:
-            self.tray = tray or SystemTray(*trayArgs, **trayKwargs)
-        except FileNotFoundError:
-            self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint)
-
-        self.setWindowFlags(Qt.WindowType.FramelessWindowHint | Qt.WindowType.WindowStaysOnTopHint | Qt.WindowType.Tool)
-
-        self.fixSize = (int(size[0] * scale), int(size[1] * scale))
-
-        self.callFunctions: dict[str, callable] = {}
-        self.position = position
-        if self.position == (-1, -1):
-            self.position = getCenterPosition(self.fixSize)
-        self.move(*getCenterPosition(self.fixSize))
-
-        self.isRunning = True
-
-        self.threadPool = ThreadPool(500)
-
-        self.initUI()
-
-    def initUI(self):
-        self.setWindowTitle(self.title)
-        self.resize(*map(lambda x: int(x * self.scale), self.size))
-        self.resize(*map(lambda x: int(x * self.scale), self.size))
-
-        self.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
-        self.tray.init()
-
-    def paintGL(self):
-        pass
-
-    def initializeGL(self):
-        self.makeCurrent()
-
-    def resizeGL(self, w, h):
-        pass
-
-    def mousePressEvent(self, event):
-        pass
-
-    def mouseReleaseEvent(self, event):
-        pass
-
-    def mouseMoveEvent(self, event):
-        pass
-
-    def timerEvent(self, event):
-        pass
-
-    def wheelEvent(self, event):
-        pass
-
-    def keyPressEvent(self, event):
-        pass
-
-    def keyReleaseEvent(self, event):
-        pass
-
-    def closeEvent(self, event):
-        pass
-
-    def _run(self):
-        self.initUI()
-        self.show()
-
-    def timer(self, interval: int | float, exitCondition: callable = lambda: False, callback: callable = lambda: None):
-        def run():
-            timeSleep = 0
-            while self.isRunning and not exitCondition() and timeSleep < interval:
-                time.sleep(0.01)
-                timeSleep += 0.01
-            callback()
-
-        self.threadPool.apply_async(run)
-
-    def exit(self):
-        self.isRunning = False
-        self.hide()
-        self.tray.setVisible(False)
-        self.close()
-        sys.exit(0)
 
 
 class RoleLive2D(Liv2DWidget):
@@ -134,14 +37,25 @@ class RoleLive2D(Liv2DWidget):
                  isAutoBlink: bool = True,
                  isAutoBreath: bool = True,
                  isLog: bool = True,
-                 isRecording: bool = True,
                  isAI: bool = True,
+                 isRecording: bool = True,
                  ollamaArgs: tuple = (),
                  ollamaKwargs: dict = None,
                  recordingArgs: tuple = (),
                  recordingKwargs: dict = None,
-                 waveLoaderKwargs: dict = None):
-        super().__init__(size=size, scale=scale, title=title, tray=SystemTray(icon=iconFileName, tooltip=title))
+                 trayArgs: tuple = (),
+                 trayKwargs=None,
+                 waveLoaderKwargs: dict = None,
+                 position: tuple[int, int] = None,
+                 contextPosition: tuple[int, int] = None,
+                 waveLoaderPosition: tuple[int, int] = None,
+                 fromConfigureFile: bool = False):
+        super().__init__(size=size,
+                         scale=scale,
+                         title=title,
+                         trayArgs=trayArgs or (),
+                         trayKwargs=trayKwargs or {"icon": iconFileName if iconFileName != "" else "icon.jpg", "tooltip": title},
+                         position=position or (-1, -1))
         self.roleName = roleName
         self.modelName = modelName
 
@@ -156,7 +70,9 @@ class RoleLive2D(Liv2DWidget):
         self.clickY = -1
 
         self.isLookingAt = isLookingAt
-        self.contextPosition = (self.position[0] + self.size[0] // 2, self.position[1] + self.height() // 2)
+        self.contextPosition = contextPosition or (self.position[0] + self.size[0] // 2, self.position[1] + self.height() // 2)
+        self.waveLoaderPosition = waveLoaderPosition or (int(self.position[0] + self.fixSize[0] / 2 - (int(self.size[0] * self.scale) / 2)),
+                                                         self.position[1] + int(self.size[1] * self.scale))
         self.contextManager = contextManager or ContextManager(self, position=self.contextPosition)
 
         self.isAI = isAI
@@ -165,19 +81,19 @@ class RoleLive2D(Liv2DWidget):
             self.ollama = ollama or Ollama(*ollamaArgs, **(ollamaKwargs or {}))
 
         self.realtimeRecording = RealtimeRecording(*recordingArgs, **(recordingKwargs or {}))
-        self.isRecording = isRecording
         self.waveLoader = None
-        if self.isRecording:
-            kwargs = {"parent": self, "recording": self.realtimeRecording, "waveColor": "blue"}
-            kwargs.update({
-                "width": int(self.size[0] * self.scale),
-                "height": int(self.size[1] * self.scale) // 5,
-                "fps": self.fps,
-                "position": (int(self.position[0] + self.fixSize[0] / 2 - (int(self.size[0] * self.scale) / 2)),
-                             self.position[1] + int(self.size[1] * self.scale))
-            })
-            kwargs.update(waveLoaderKwargs or {})
-            self.waveLoader = WaveLoader(**kwargs)
+        kwargs = {
+            "parent": self,
+            "recording": self.realtimeRecording,
+            "waveColor": "blue",
+            "width": int(self.size[0] * self.scale),
+            "height": int(self.size[1] * self.scale) // 5,
+            "fps": self.fps,
+            "position": self.waveLoaderPosition
+        }
+        kwargs.update(waveLoaderKwargs or {})
+        self.isRecording = isRecording
+        self.waveLoader = WaveLoader(**kwargs)
 
         self.config = {
             "roleName": self.roleName,
@@ -187,23 +103,29 @@ class RoleLive2D(Liv2DWidget):
             "isAutoBreath": self.model.isAutoBreath,
             "isLog": self.model.isLog,
             "isAI": self.isAI,
+            "isRecording": self.isRecording,
             "ollamaArgs": ollamaArgs,
             "ollamaKwargs": ollamaKwargs,
             "recordingArgs": recordingArgs,
             "recordingKwargs": recordingKwargs,
             "waveLoaderKwargs": waveLoaderKwargs,
+            "trayArgs": trayArgs,
+            "trayKwargs": trayKwargs or {"icon": iconFileName, "tooltip": title},
             "idleFrequency": self.idleFrequency,
             "fps": self.fps,
             "size": self.size,
             "scale": self.scale,
             "title": self.title,
-            "iconFileName": self.tray.icon().name(),
+            "iconFileName": iconFileName,
             "position": self.position,
             "contextPosition": self.contextPosition,
-            "isRecording": self.isRecording
+            "waveLoaderPosition": self.waveLoaderPosition
         }
 
         self.initTrayActions()
+
+        if fromConfigureFile:
+            logger.info(f"Loading {self.roleName} from configure file")
 
     def isInL2DArea(self, click_x, click_y):
         return gl.glReadPixels(click_x, self.height() - click_y, 1, 1, gl.GL_RGBA, gl.GL_UNSIGNED_BYTE)[3] > 0
@@ -222,9 +144,11 @@ class RoleLive2D(Liv2DWidget):
         def showOrHideWave():
             if self.waveLoader.isVisible():
                 self.tray.setNewActionName("禁用系统监听", "启用系统监听(会大量消耗系统资源)")
+                self.waveLoader.stopRecording()
                 self.waveLoader.hide()
             else:
                 self.tray.setNewActionName("启用系统监听(会大量消耗系统资源)", "禁用系统监听")
+                self.waveLoader.startRecording()
                 self.waveLoader.show()
 
         self.tray.addTrayAction("禁用系统监听", showOrHideWave)
@@ -257,12 +181,18 @@ class RoleLive2D(Liv2DWidget):
     def mouseMoveEvent(self, event):
         x, y = event.scenePosition().x(), event.scenePosition().y()
         if self.clickInLA:
-            self.move(int(self.x() + x - self.clickX), int(self.y() + y - self.clickY))
+            self.position = (int(self.x() + x - self.clickX), int(self.y() + y - self.clickY))
+            self.move(*self.position)
             self.contextPosition = (int(self.x() + x - self.clickX) + self.width() // 2 - self.contextManager.width() // 2,
                                     int(self.y() + y - self.clickY) + self.height() // 2 - self.contextManager.height() // 2)
             self.contextManager.updatePosition(self.contextPosition)
             if self.realtimeRecording:
-                self.waveLoader.move(int(self.waveLoader.x() + x - self.clickX), int(self.waveLoader.y() + y - self.clickY))
+                self.waveLoaderPosition = int(self.waveLoader.x() + x - self.clickX), int(self.waveLoader.y() + y - self.clickY)
+                self.waveLoader.move(*self.waveLoaderPosition)
+
+            self.config["position"] = self.position
+            self.config["contextPosition"] = self.contextPosition
+            self.config["waveLoaderPosition"] = self.waveLoaderPosition
 
     def timerEvent(self, event):
         if self.isRunning:
@@ -339,6 +269,11 @@ class RoleLive2D(Liv2DWidget):
         self._run()
         self.loadStartMotion()
         self.timer(self.idleFrequency, callback=self.loadIdleMotion)
+        logger.success(f"{self.roleName} started successfully")
+
+    @staticmethod
+    def loadFromConfig(*args, **kwargs) -> "RoleLive2D":
+        pass
 
     @staticmethod
     def sleep(seconds: float):
@@ -347,14 +282,18 @@ class RoleLive2D(Liv2DWidget):
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    widget = RoleLive2D("Mark",
-                        "Wanko",
+    widget = RoleLive2D("Lafei",
+                        "lafei_4",
                         size=(300, 400),
                         isLookingAt=True,
                         isAutoBlink=True,
                         isAutoBreath=True,
                         isLog=True,
-                        ollamaArgs=("llama3.2:latest",),
+                        isAI=False,
                         waveLoaderKwargs={"waveColor": "red"})
     widget.start()
     sys.exit(app.exec())
+
+
+def loadRoleFromConfig(configFilename: str, defineClass: Type[RoleLive2D] = RoleLive2D) -> RoleLive2D:
+    return defineClass.loadFromConfig(fromConfigureFile=True, **loadFromConfigureFile(configFilename))
