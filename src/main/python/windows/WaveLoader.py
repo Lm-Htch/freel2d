@@ -1,3 +1,4 @@
+import time
 from threading import Timer
 
 import librosa
@@ -58,6 +59,8 @@ class WaveLoader(QWidget):
         logger.info("Stop recording.")
 
     def updatePlot(self, audio_data: np.ndarray):
+        if not self.__isRunning:
+            return
         audio_data = audio_data.astype(self.decoder)
         try:
             if self.noise_profile is None:
@@ -79,24 +82,34 @@ class WaveLoader(QWidget):
 
             self.figure.clear()
 
-            if denoised_audio.ndim == 1:  # 单声道
-                ax = self.figure.add_subplot(111)
-                ax.set_axis_off()
-                librosa.display.waveshow(denoised_audio, sr=self.recording.rate, ax=ax, color=self.waveColor)
-            elif denoised_audio.ndim == 2:  # 多声道
-                ax_left = self.figure.add_subplot(211)
-                ax_right = self.figure.add_subplot(212)
-                ax_left.set_axis_off()
-                ax_right.set_axis_off()
-                librosa.display.waveshow(denoised_audio[:, 0], sr=self.recording.rate, ax=ax_left, color=self.waveColor)
-                librosa.display.waveshow(denoised_audio[:, 1], sr=self.recording.rate, ax=ax_right, color=self.waveColor)
-            else:
-                logger.error("Not supported audio format.")
-
-            self.canvas.draw()
+            try:
+                if denoised_audio.ndim == 1:  # 单声道
+                    ax = self.figure.add_subplot(111)
+                    ax.set_axis_off()
+                    librosa.display.waveshow(denoised_audio, sr=self.recording.rate, ax=ax, color=self.waveColor)
+                elif denoised_audio.ndim == 2:  # 多声道
+                    ax_left = self.figure.add_subplot(211)
+                    ax_right = self.figure.add_subplot(212)
+                    ax_left.set_axis_off()
+                    ax_right.set_axis_off()
+                    librosa.display.waveshow(denoised_audio[:, 0], sr=self.recording.rate, ax=ax_left, color=self.waveColor)
+                    librosa.display.waveshow(denoised_audio[:, 1], sr=self.recording.rate, ax=ax_right, color=self.waveColor)
+                else:
+                    logger.error("Not supported audio format.")
+                self.canvas.draw()
+            except Exception as e:
+                logger.error(f"Find Unknown Error: {e}, try to restart WaveLoader.")
+                Timer(1, self.__restart).start()
         except Exception as e:
             logger.error(f"Error: {e}")
             self.recording.stopRecording()
+
+    def __restart(self):
+        self.recording.stopRecording()
+        self.hide()
+        time.sleep(1)
+        self.show()
+        self.startRecording()
 
     def closeEvent(self, event):
         self.recording.stopRecording()

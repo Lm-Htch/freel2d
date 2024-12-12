@@ -8,5 +8,5 @@ from src.main.python.roles.Lafei import Lafei
 
 def main():
     app = QApplication(sys.argv)
-    Lafei().start()
+    Hiyori().start()
     exit(app.exec())

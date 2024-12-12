@@ -13,14 +13,14 @@ class Lafei(RoleLive2D):
                          fps=120)
 
     def loadStartMotion(self):
-        self.loadMotion("Home", "home", 2)
+        self.loadMotion("Home", "home", 1)
 
     def loadIdleMotion(self):
-        self.loadRandomMotion("Main")
+        self.loadRandomMotion("Main", priority=1)
 
     def mousePressEvent(self, event):
         super().mousePressEvent(event)
-        self.loadMotion("Touch", "touch_special")
+        self.loadMotion("Touch", "touch_special", priority=2)
 
     def mouseReleaseEvent(self, event):
         super().mousePressEvent(event)

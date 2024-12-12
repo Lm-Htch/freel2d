@@ -69,12 +69,16 @@ class Model:
             if self.model.IsMotionFinished():
                 self.model.StartMotion(group, index, priority, onCallback, offCallback)
 
-    def startRandomMotion(self, group: str, frequency: float):
+    def startRandomMotion(self, group: str, frequency: float, priority: int = 1):
         def run():
             logger.debug("Start Random Motion")
-            self.waitMotionEnd(self.model.StartRandomMotion, args=(group, 1))
-            time.sleep(frequency)
-            run()
+            self.waitMotionEnd(self.model.StartRandomMotion, args=(group, priority))
+            sleepTime = 0
+            while self.model and sleepTime < frequency:
+                time.sleep(1)
+                sleepTime += 1
+            if self.model:
+                run()
 
         if self.model:
             self.threadPool.apply_async(run)
@@ -139,7 +143,8 @@ class Model:
         return [self.model.GetParameter(i) for i in range(self.model.GetParameterCount())]
 
     def lookAt(self, x, y):
-        self.model.Drag(x, y)
+        if self.model:
+            self.model.Drag(x, y)
 
     def setAutoBreathEnable(self, enable: bool = True):
         self.model.SetAutoBreathEnable(enable)
@@ -153,7 +158,7 @@ class Model:
 
     def waitMotionEnd(self, callback=None, args: tuple = ()):
         def wait():
-            while not self.model.IsMotionFinished():
+            while not self.model.IsMotionFinished() and self.model:
                 time.sleep(0.1)
             if callback:
                 callback(*args)
