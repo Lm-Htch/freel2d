@@ -1,18 +1,14 @@
 import os
-import sys
 
-from PySide6.QtWidgets import QApplication
+ROOT_PATH = os.path.join(os.getcwd().split("src")[0], "")
+RESOURCES_PATH = os.path.join(ROOT_PATH, "src", "resources")
+MODEL_PATH = os.path.join(RESOURCES_PATH, "models")
+ICON_PATH = os.path.join(RESOURCES_PATH, "icons")
+CONFIG_PATH = os.path.join(RESOURCES_PATH, "config")
+STYLE_PATH = os.path.join(RESOURCES_PATH, "styles")
+IMAGE_PATH = os.path.join(RESOURCES_PATH, "images")
+COMPONENTS_PATH = os.path.join(RESOURCES_PATH, "components")
 
-from src.main import CONFIG_PATH
-from src.main.python.roles.Hiyori import Hiyori
-from src.main.python.roles.Lafei import Lafei
-from src.main.python.roles.RoleLive2D import loadRoleFromConfig
-
-
-def main():
-    app = QApplication(sys.argv)
-    if os.path.exists(os.path.join(CONFIG_PATH, "Lafei.json")):
-        loadRoleFromConfig("Lafei.json", Lafei).start()
-    else:
-        Lafei().start()
-    exit(app.exec())
+__version__ = "0.0.1"
+__author__ = "Wutong"
+__package_name__ = "livepet"

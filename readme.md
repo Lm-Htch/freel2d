@@ -32,7 +32,7 @@
 ## 拓展模型
 
 * ```python
-  from src.main.python.roles.RoleLive2D import RoleLive2D
+  from src_deprecated.main.python.roles.RoleLive2D import RoleLive2D
   
   class MyModel(RoleLive2D):
     def __init__(self):

@@ -1,2 +1,0 @@
-class ModelNotInitializedException(Exception):
-    pass
