@@ -8,5 +8,3 @@ numpy~=1.26.4
 matplotlib~=3.9.3
 PyAudio~=0.2.14
 sounddevice~=0.5.1
-
-setuptools~=75.6.0

@@ -42,20 +42,20 @@ class Component:
         """
         ...
 
-    def serialize(self) -> dict:
+    def componentMousePress(self, event: QMouseEvent):
         """
-        序列化函数
-        序列化组件信息，用于保存组件状态
-        :return: 序列化后的字典
+        组件鼠标按下函数
+        组件鼠标按下时需要执行的操作，如更新组件位置等
+        :param event: 鼠标事件
+        :return:
         """
-        return self.__dict__
+        ...
 
-    def deserialize(self, data: dict) -> bool:
+    def componentMouseRelease(self, event: QMouseEvent):
         """
-        反序列化函数
-        反序列化组件信息，用于恢复组件状态
-        :param data: 反序列化的字典
-        :return:  是否成功反序列化 - True/False
+        组件鼠标释放函数
+        组件鼠标释放时需要执行的操作，如更新组件位置等
+        :param event: 鼠标事件
+        :return:
         """
-        self.__dict__.update(data)
-        return True
+        ...

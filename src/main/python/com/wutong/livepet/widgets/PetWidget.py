@@ -18,8 +18,26 @@ class PetWidget(LiveWidget):
                  scale: float = 1.0,
                  isAutoBlink: bool = True,
                  isAutoBreath: bool = True,
+                 isLookingAt: bool = True,
                  fps: int = 60,
                  idleFrequency: float = 60.0):
+        """
+        构造函数
+        :param app: 应用对象
+        :param petName: 桌宠名
+        :param modelName: 模型名（模型文件夹名字）
+        :param width: 显示宽度
+        :param height: 显示高度
+        :param parent: QWidget的父对象
+        :param positionX: 出现位置X坐标 Default: None （X居中显示）
+        :param positionY: 出现位置Y坐标 Default: None （Y居中显示）
+        :param scale: 缩放比例 Default: 1.0
+        :param isAutoBlink: 是否自动眨眼 Default: True
+        :param isAutoBreath: 是否自动呼吸 Default: True
+        :param isLookingAt: 是否Live2D目光鼠标跟随 Default: True
+        :param fps: 运行帧数 Default: 60
+        :param idleFrequency: 待机随机动作播放频率 Default: 60.0
+        """
         super().__init__(app=app, parent=parent, frameFps=fps, frameWidth=width, frameHeight=height, frameScale=scale, frameTitle=petName, positionX=positionX, positionY=positionY)
         self.petName = petName
         self.modelName = modelName
@@ -32,7 +50,7 @@ class PetWidget(LiveWidget):
         self.clickInLA = False
         """是否点击在Live2D区域"""
 
-        self.isLookingAt = False
+        self.isLookingAt = isLookingAt
         """是否Live2D目光鼠标跟随"""
         self.isRunning = False
         """是否正在运行"""

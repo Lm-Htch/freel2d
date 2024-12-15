@@ -82,7 +82,3 @@ def fixModel(modelName: str):
         _copy_modify_from_motion(path)
 
     logger.success("修复完成")
-
-
-if __name__ == '__main__':
-    fixModel("lafeiii_3")

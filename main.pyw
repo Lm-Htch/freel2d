@@ -1,4 +1,9 @@
-import src_deprecated
+import sys
+
+from PySide6.QtWidgets import QApplication
+
+from src.main.python.com.wutong.livepet.roles.Hiyori import Hiyori
 
 if __name__ == '__main__':
-    src_deprecated.main()
+    pet = Hiyori(QApplication(sys.argv))  # 调用 - 传入应用程序实例
+    pet.start()  # 启动程序
