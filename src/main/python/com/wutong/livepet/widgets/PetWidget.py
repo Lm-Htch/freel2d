@@ -1,4 +1,4 @@
-from PySide6.QtGui import QCursor
+from PySide6.QtGui import QCursor, Qt
 from PySide6.QtWidgets import QApplication
 
 from src.main.python.com.wutong.livepet.live2d.Live2D import Live2D
@@ -135,6 +135,8 @@ class PetWidget(LiveWidget):
         if self.isInL2DArea(x, y):
             self.clickInLA = True
             super().mousePressEvent(event)
+        else:
+            pass
 
     def mouseReleaseEvent(self, event):
         """
@@ -144,6 +146,8 @@ class PetWidget(LiveWidget):
         """
         if self.isInLA:
             self.clickInLA = False
+        else:
+            self.setAttribute(Qt.WidgetAttribute.WA_TransparentForMouseEvents, False)
 
     def mouseMoveEvent(self, event):
         """
