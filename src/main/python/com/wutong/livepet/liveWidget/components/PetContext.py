@@ -117,8 +117,9 @@ class PetContext(QWidget, Component):
         self.label.setText(text)
 
     def addText(self, text: str):
-        self.show()
+        self.isShowing = True
         self.label.setText(self.label.text() + text)
+        self.isShowing = False
 
     def clearText(self):
         self.liveWidget.logger.info("PetContext clearText")

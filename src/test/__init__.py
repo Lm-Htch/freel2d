@@ -1,25 +1,14 @@
-# python program to explain the
-# use of cancel() method in Timer class
-
-import threading
 import time
+from threading import Thread
+
+import ollama
 
 
-def helper_function(i):
-    print("Value printed=", i)
-    print()
+def run():
+    resp = ollama.chat("llama3.2:latest", [{'role': 'user', 'content': 'Why is the sky blue?'}], stream=True, keep_alive=0)
+    for i in resp:
+        print(i['message']['content'], end='', flush=True)
 
 
-if __name__ == '__main__':
-    thread1 = threading.Timer(interval=3, function=helper_function, args=(19,))
-    print("Starting the timer object")
-    print()
-
-    # Starting the function after 3 seconds
-    thread1.start()
-    # Sleeping this thread for 5 seconds
-    time.sleep(5)
-
-    # This will not cancel the thread as 3 seconds have passed
-    thread1.cancel()
-    print("This time thread is not cancelled as 3 seconds have passed when cancel() method is called")
+Thread(target=run).start()
+time.sleep(10)

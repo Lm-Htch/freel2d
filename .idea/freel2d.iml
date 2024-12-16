@@ -15,7 +15,6 @@
       <excludeFolder url="file://$MODULE_DIR$/docs/draw.io" />
       <excludeFolder url="file://$MODULE_DIR$/.l2d2venv" />
       <excludeFolder url="file://$MODULE_DIR$/.win32venv" />
-      <excludeFolder url="file://$MODULE_DIR$/src/main/resources/models/lafei_4" />
       <excludeFolder url="file://$MODULE_DIR$/src/main/resources/models/lafeiii_3" />
     </content>
     <orderEntry type="jdk" jdkName="Python 3.12 virtualenv at E:\Python\freel2d\.venv" jdkType="Python SDK" />

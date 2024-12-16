@@ -165,7 +165,7 @@ class WaveListener(QWidget, Component):
 
     def componentMove(self, event: QMouseEvent) -> None:
         self.positionX = self.recording.liveWidget.positionX
-        self.positionY = self.recording.liveWidget.positionY + self.recording.liveWidget.frameHeight - 100
+        self.positionY = self.recording.liveWidget.positionY + self.recording.liveWidget.scaledSize[1]
         self.move(self.positionX, self.positionY)
 
     def updatePlot(self, audio_data: np.ndarray):
