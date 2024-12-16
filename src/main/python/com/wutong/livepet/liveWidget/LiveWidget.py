@@ -1,3 +1,4 @@
+import gc
 import threading
 
 import pyautogui
@@ -7,6 +8,7 @@ from PySide6.QtWidgets import QApplication
 from loguru import logger
 
 from src.main.python.com.wutong.livepet.liveWidget.components.Component import Component
+from src.main.python.com.wutong.livepet.onInput.MouseInput import MouseInput
 
 
 class LiveWidget(QOpenGLWidget):
@@ -79,6 +81,8 @@ class LiveWidget(QOpenGLWidget):
         """组件列表"""
 
         self.setGeometry(self.positionX, self.positionY, self.scaledSize[0], self.scaledSize[1])  # 设置窗口位置和大小
+
+        self.mouseInput = MouseInput(self.logger, self.threadPool)
 
     def frameless(self):
         """
@@ -185,6 +189,9 @@ class LiveWidget(QOpenGLWidget):
         显示窗口
         :return: None
         """
+        for component in self.__components:
+            self.logger.info(f"show component {component.componentName}")
+            component.componentShow()
         super().show()
 
     @staticmethod
@@ -228,7 +235,6 @@ class LiveWidget(QOpenGLWidget):
         pass
 
     def mouseMoveEvent(self, event):
-        x, y = event.scenePosition().x(), event.scenePosition().y()
         for component in self.__components:
             component.componentMove(event)
 
@@ -251,8 +257,16 @@ class LiveWidget(QOpenGLWidget):
         self.update()
         self.loadComponents()
         self.update()
+        self.mouseInput.startAll()
         self.logger.success("liveWidget started successfully")
         self.app.exec()  # 进入消息循环
+
+    def hide(self):
+        for component in self.__components:
+            self.logger.info(f"hide component {component.componentName}")
+            component.componentHide()
+            self.logger.success(f"hide component {component.componentName} successfully")
+        super().hide()
 
     def closeEvent(self, event):
         self.hide()
@@ -273,4 +287,6 @@ class LiveWidget(QOpenGLWidget):
             self.logger.success("liveWidget closeEvent successfully")
 
         threading.Thread(target=cleanup).start()  # 在单独的线程中执行清理操作
+        gc.collect()
+        self.logger.success("liveWidget closed")
         event.accept()  # 接受关闭事件

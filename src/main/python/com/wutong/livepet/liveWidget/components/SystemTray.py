@@ -25,7 +25,7 @@ class SystemTray(QSystemTrayIcon, Component):
         self.setToolTip(tooltiptext)
         self.setIcon(QIcon(os.path.join(ICON_PATH, "icon.jpg")))
 
-        self.liveWidget: LiveWidget | None = None
+        self.liveWidget: LiveWidget | PetWidget | None = None
 
         self.trayMenu: QMenu | None = None
 

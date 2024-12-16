@@ -64,7 +64,7 @@ class Live2D:
         """
         self.logger.info(f"Initializing Live2D model {self.modelName}")
         live2d.glewInit()  # 初始化 GLEW
-        live2d.setGLProperties()  # 设置 OpenGL 属性
+        # live2d.setGLProperties()  # 设置 OpenGL 属性 0.2.5及以前版本
 
         live2d.setLogEnable(False)  # 关闭日志输出
         self.__model.LoadModelJson(findModel(self.modelName))  # 加载模型文件

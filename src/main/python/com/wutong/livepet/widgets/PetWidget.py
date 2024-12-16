@@ -1,8 +1,11 @@
+import time
+
 from PySide6.QtGui import QCursor, Qt
 from PySide6.QtWidgets import QApplication
 
 from src.main.python.com.wutong.livepet.live2d.Live2D import Live2D
 from src.main.python.com.wutong.livepet.liveWidget import gl, LiveWidget
+from src.main.python.com.wutong.livepet.onInput.MouseInput import MouseOperationTypes
 
 
 class PetWidget(LiveWidget):
@@ -121,7 +124,7 @@ class PetWidget(LiveWidget):
             self.isInLA = self.isInL2DArea(local_x, local_y)
 
             if self.isLookingAt:
-                self.model.lookingAt(local_x, local_y)
+                self.model.lookingAt(local_x, local_y)  # Live2D目光跟随鼠标
 
             self.update()
 
@@ -194,3 +197,6 @@ class PetWidget(LiveWidget):
         :return:
         """
         super().close()
+
+    def start(self):
+        super().start()

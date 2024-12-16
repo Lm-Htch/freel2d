@@ -4,5 +4,5 @@
     <option name="sdkName" value="Python 3.12 (live2d)" />
   </component>
   <component name="CMakeWorkspace" PROJECT_DIR="$PROJECT_DIR$" />
-  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.12 (freel2d)" project-jdk-type="Python SDK" />
+  <component name="ProjectRootManager" version="2" project-jdk-name="Python 3.12 virtualenv at E:\Python\freel2d\.venv" project-jdk-type="Python SDK" />
 </project>

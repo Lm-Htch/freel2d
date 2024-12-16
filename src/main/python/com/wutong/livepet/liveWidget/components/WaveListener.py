@@ -152,7 +152,7 @@ class WaveListener(QWidget, Component):
         self.setGeometry(self.positionX, self.positionY, self.width, self.height)
         self.clickX = self.recording.liveWidget.clickX
         self.clickY = self.recording.liveWidget.clickY
-        self.show()
+        # self.show()
         self.recording.startRecording(fps=liveWidget.frameFps, callback=self.updatePlot)
         return True
 
@@ -212,3 +212,9 @@ class WaveListener(QWidget, Component):
         except Exception as e:
             self.recording.liveWidget.logger.exception(f"Error: {e}")
             self.recording.stopRecording()
+
+    def componentHide(self):
+        self.hide()
+
+    def componentShow(self):
+        self.show()

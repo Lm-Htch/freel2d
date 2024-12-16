@@ -59,3 +59,19 @@ class Component:
         :return:
         """
         ...
+
+    def componentShow(self):
+        """
+        组件显示函数
+        组件显示时需要执行的操作，如显示组件等
+        :return:
+        """
+        ...
+
+    def componentHide(self):
+        """
+        组件隐藏函数
+        组件隐藏时需要执行的操作，如隐藏组件等
+        :return:
+        """
+        ...

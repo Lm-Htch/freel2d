@@ -78,7 +78,7 @@ def fixModel(modelName: str):
     """
     motionPathList = _load_all_motion_path_from_model_dir(os.path.join(MODEL_PATH, modelName))
     for path in motionPathList:
-        logger.info("修复motion文件: ", path, sep="")
+        logger.info(f"修复motion文件: {path}")
         _copy_modify_from_motion(path)
 
     logger.success("修复完成")
